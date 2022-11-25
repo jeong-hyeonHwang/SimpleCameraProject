@@ -13,6 +13,7 @@
 		3A46422729313B9B00C6B7A3 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3A46422529313B9B00C6B7A3 /* Main.storyboard */; };
 		3A46422929313B9C00C6B7A3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3A46422829313B9C00C6B7A3 /* Assets.xcassets */; };
 		3A46422C29313B9C00C6B7A3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3A46422A29313B9C00C6B7A3 /* LaunchScreen.storyboard */; };
+		3A46423529313BFD00C6B7A3 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3A46423429313BFD00C6B7A3 /* SnapKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A46423529313BFD00C6B7A3 /* SnapKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,6 +85,9 @@
 			dependencies = (
 			);
 			name = SimpleCameraProject;
+			packageProductDependencies = (
+				3A46423429313BFD00C6B7A3 /* SnapKit */,
+			);
 			productName = SimpleCameraProject;
 			productReference = 3A46421C29313B9B00C6B7A3 /* SimpleCameraProject.app */;
 			productType = "com.apple.product-type.application";
@@ -111,6 +116,9 @@
 				Base,
 			);
 			mainGroup = 3A46421329313B9B00C6B7A3;
+			packageReferences = (
+				3A46423329313BFD00C6B7A3 /* XCRemoteSwiftPackageReference "SnapKit" */,
+			);
 			productRefGroup = 3A46421D29313B9B00C6B7A3 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -302,9 +310,12 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jhHwang.SimpleCameraProject;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -330,9 +341,12 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jhHwang.SimpleCameraProject;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -358,6 +372,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3A46423329313BFD00C6B7A3 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit";
+			requirement = {
+				branch = develop;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3A46423429313BFD00C6B7A3 /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3A46423329313BFD00C6B7A3 /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3A46421429313B9B00C6B7A3 /* Project object */;
 }
