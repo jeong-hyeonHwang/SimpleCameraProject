@@ -13,6 +13,7 @@
 		3A46422C29313B9C00C6B7A3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3A46422A29313B9C00C6B7A3 /* LaunchScreen.storyboard */; };
 		3A46423529313BFD00C6B7A3 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3A46423429313BFD00C6B7A3 /* SnapKit */; };
 		3A46423729313C2E00C6B7A3 /* RouteFIndingCameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A46423629313C2E00C6B7A3 /* RouteFIndingCameraViewController.swift */; };
+		3A46423929313E3B00C6B7A3 /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A46423829313E3B00C6B7A3 /* CameraView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +24,7 @@
 		3A46422B29313B9C00C6B7A3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3A46422D29313B9C00C6B7A3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3A46423629313C2E00C6B7A3 /* RouteFIndingCameraViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteFIndingCameraViewController.swift; sourceTree = "<group>"; };
+		3A46423829313E3B00C6B7A3 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +64,7 @@
 				3A46422A29313B9C00C6B7A3 /* LaunchScreen.storyboard */,
 				3A46422D29313B9C00C6B7A3 /* Info.plist */,
 				3A46423629313C2E00C6B7A3 /* RouteFIndingCameraViewController.swift */,
+				3A46423829313E3B00C6B7A3 /* CameraView.swift */,
 			);
 			path = SimpleCameraProject;
 			sourceTree = "<group>";
@@ -145,6 +148,7 @@
 				3A46422029313B9B00C6B7A3 /* AppDelegate.swift in Sources */,
 				3A46423729313C2E00C6B7A3 /* RouteFIndingCameraViewController.swift in Sources */,
 				3A46422229313B9B00C6B7A3 /* SceneDelegate.swift in Sources */,
+				3A46423929313E3B00C6B7A3 /* CameraView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,6 +290,7 @@
 				DEVELOPMENT_TEAM = UAM52RQFW9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SimpleCameraProject/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "WE NEED TO USE CAMERA";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -316,6 +321,7 @@
 				DEVELOPMENT_TEAM = UAM52RQFW9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SimpleCameraProject/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "WE NEED TO USE CAMERA";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

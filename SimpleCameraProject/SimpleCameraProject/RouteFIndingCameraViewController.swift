@@ -7,19 +7,18 @@
 
 import UIKit
 import SnapKit
-import PhotosUI
 import AVFoundation
 
 class RouteFindingCameraViewController: UIViewController {
     
-    private lazy var cameraView: UIView = {
-        let view = UIView()
+    private lazy var cameraView: CameraView = {
+        let view = CameraView()
         
         return view
     }()
     
     private lazy var shutterButton: UIButton = {
-       let button = UIButton()
+        let button = UIButton()
         button.backgroundColor = .clear
         button.layer.borderColor = UIColor.white.cgColor
         button.layer.borderWidth = 4
@@ -28,12 +27,49 @@ class RouteFindingCameraViewController: UIViewController {
         return button
     }()
     
+    private let captureSession = AVCaptureSession()
+    private let sessionQueue = DispatchQueue(label: "session queue")
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         setUpLayout()
+        cameraView.videoPreviewLayer.session = captureSession
+        cameraView.videoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
+        cameraAuthorizationCheck()
     }
-  
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        sessionQueue.async {
+            self.captureSession.startRunning()
+        }
+    }
+    
+    func cameraAuthorizationCheck() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized: // The user has previously granted access to the camera.
+            print("YES")
+            self.setupCaptureSession()
+            
+        case .notDetermined: // The user has not yet been asked for camera access.
+            sessionQueue.suspend()
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                if granted {
+                    self.setupCaptureSession()
+                }
+            }
+            
+        case .denied:
+            return
+            
+        case .restricted: // The user can't grant access due to restrictions.
+            return
+        @unknown default:
+            return
+        }
+    }
+    
     func setUpLayout() {
         
         let shutterButtonSize: CGFloat = 75
@@ -61,6 +97,38 @@ class RouteFindingCameraViewController: UIViewController {
         circleLayer.path = circleShape.cgPath
         circleLayer.fillColor = UIColor.white.cgColor
         shutterButton.layer.addSublayer(circleLayer)
+        
     }
-     
+    
+    func setupCaptureSession() {
+        sessionQueue.async { [self] in
+            
+            // Input Setting
+            captureSession.beginConfiguration()
+            let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera,
+                                                      for: .video, position: .unspecified)
+            guard
+                let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice!),
+                captureSession.canAddInput(videoDeviceInput)
+                else { return }
+            captureSession.addInput(videoDeviceInput)
+            
+            let photoOutput = AVCapturePhotoOutput()
+            guard captureSession.canAddOutput(photoOutput) else { return }
+            captureSession.sessionPreset = .photo
+            captureSession.addOutput(photoOutput)
+            
+            DispatchQueue.main.async {
+                
+                var initialVideoOrientation: AVCaptureVideoOrientation = .portrait
+                if let videoOrientation = AVCaptureVideoOrientation(rawValue: UIInterfaceOrientation.portrait.rawValue) {
+                    initialVideoOrientation = videoOrientation
+                }
+                
+                self.cameraView.videoPreviewLayer.connection?.videoOrientation = initialVideoOrientation
+            }
+            
+            captureSession.commitConfiguration()
+        }
+    }
 }
