@@ -291,6 +291,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SimpleCameraProject/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "WE NEED TO USE CAMERA";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "WE NEED TO USE PHOTO LIBRARY";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "WE NEED TO USE LIBRARY";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -322,6 +324,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SimpleCameraProject/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "WE NEED TO USE CAMERA";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "WE NEED TO USE PHOTO LIBRARY";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "WE NEED TO USE LIBRARY";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
