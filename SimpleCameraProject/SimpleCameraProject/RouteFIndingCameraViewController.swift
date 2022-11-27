@@ -9,6 +9,7 @@ import UIKit
 import SnapKit
 import AVFoundation
 import Photos
+import PhotosUI
 
 enum CameraAuthorizeStatus {
     case success
@@ -17,10 +18,12 @@ enum CameraAuthorizeStatus {
 }
 
 class RouteFindingCameraViewController: UIViewController {
+
+    private var currentLocalIdentifier: String?
     
     private lazy var cameraView: CameraView = {
         let view = CameraView()
-        
+
         return view
     }()
     
@@ -34,10 +37,23 @@ class RouteFindingCameraViewController: UIViewController {
         return button
     }()
     
+    private lazy var photosButton: UIButton = {
+        let button = UIButton()
+        button.backgroundColor = .white
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.gray.cgColor
+        button.layer.cornerRadius = 10
+        button.clipsToBounds = true
+        
+        button.addTarget(self, action: #selector(showPhotoPicker), for: .touchUpInside)
+        return button
+    }()
+    
     private let captureSession = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "session queue")
     private var photoOutput: AVCapturePhotoOutput!
     private var cameraAuthorizeStatus = CameraAuthorizeStatus.success
+    private var photoImage: UIImage?
     private var photoData: Data?
     
     override func viewDidLoad() {
@@ -45,15 +61,16 @@ class RouteFindingCameraViewController: UIViewController {
         
         setUpLayout()
         setUpButton()
+        setPhotosButtonImage()
         
         cameraView.videoPreviewLayer.session = captureSession
         cameraView.videoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
         
         switch AVCaptureDevice.authorizationStatus(for: .video) {
-        case .authorized: // The user has previously granted access to the camera.
+        case .authorized:
             self.setupCaptureSession()
-            
-        case .notDetermined: // The user has not yet been asked for camera access.
+            break
+        case .notDetermined:
             sessionQueue.suspend()
             AVCaptureDevice.requestAccess(for: .video, completionHandler: { granted in
                 if !granted {
@@ -64,14 +81,14 @@ class RouteFindingCameraViewController: UIViewController {
         default:
             cameraAuthorizeStatus = .notAuthorized
         }
-        
-        sessionQueue.async {
-            self.setupCaptureSession()
-        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        photoImage = nil
+        photoData = nil
+        
         sessionQueue.async {
             switch self.cameraAuthorizeStatus {
             case .success:
@@ -86,7 +103,7 @@ class RouteFindingCameraViewController: UIViewController {
                     alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Alert OK button"),
                                                             style: .cancel,
                                                             handler: nil))
-                    
+
                     alertController.addAction(UIAlertAction(title: NSLocalizedString("Settings", comment: "Alert button to open Settings"),
                                                             style: .`default`,
                                                             handler: { _ in
@@ -97,7 +114,6 @@ class RouteFindingCameraViewController: UIViewController {
                     
                     self.present(alertController, animated: true, completion: nil)
                 }
-                
             case .configurationFailed:
                 break
             }
@@ -106,18 +122,20 @@ class RouteFindingCameraViewController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        sessionQueue.async {
-            if self.cameraAuthorizeStatus == .success {
-                self.captureSession.stopRunning()
-            }
+        if self.cameraAuthorizeStatus == .success {
+            self.captureSession.stopRunning()
         }
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
     }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
     
-    func setUpLayout() {
+    private func setUpLayout() {
         
         let shutterButtonSize: CGFloat = 75
         let safeArea = view.safeAreaLayoutGuide
@@ -145,16 +163,82 @@ class RouteFindingCameraViewController: UIViewController {
         circleLayer.fillColor = UIColor.white.cgColor
         shutterButton.layer.addSublayer(circleLayer)
         
+        view.addSubview(photosButton)
+        photosButton.snp.makeConstraints({
+            $0.leading.equalTo(safeArea.snp.leading).inset(16)
+            $0.centerY.equalTo(shutterButton.snp.centerY)
+            $0.width.height.equalTo(shutterButtonSize)
+        })
+        
     }
     
-    func setUpButton() {
+    private func setUpButton() {
         shutterButton.addTarget(self, action: #selector(capturePhoto), for: .touchUpInside)
     }
     
-    func setupCaptureSession() {
+    func fetchLastPhoto(fetchResult: PHFetchResult<PHAsset>) -> UIImage? {
+        
+        var resultImage: UIImage = UIImage()
+        
+        let requestOptions = PHImageRequestOptions()
+        requestOptions.isSynchronous = true
+        
+        PHImageManager.default().requestImage(for: fetchResult.object(at: 0) as PHAsset, targetSize: view.frame.size, contentMode: PHImageContentMode.default, options: requestOptions, resultHandler: { (image, _) in
+            if let image = image {
+                let width = image.size.width
+                let height = image.size.height
+                let croppedImage = image.cropped(rect: CGRect(x: 0, y: (height - width)/2, width: width, height: width))
+                resultImage = croppedImage ?? UIImage()
+                
+            }
+        })
+        
+        return resultImage
+    }
+    
+    func setPhotosButtonImage() {
+        
+        let fetchOptions = PHFetchOptions()
+        fetchOptions.sortDescriptors = [NSSortDescriptor(key:"creationDate", ascending: false)]
+        fetchOptions.fetchLimit = 1
+        
+        let fetchResult: PHFetchResult = PHAsset.fetchAssets(with: PHAssetMediaType.image, options: fetchOptions)
+        
+        if fetchResult.count > 0 {
+            let image = fetchLastPhoto(fetchResult: fetchResult)
+            photosButton.setImage(image, for: .normal)
+        }
+        
+    }
+    
+    func getAssetThumbnail(asset: PHAsset) -> UIImage {
+        let manager = PHImageManager.default()
+        let option = PHImageRequestOptions()
+        var image = UIImage()
+        option.deliveryMode = .highQualityFormat
+        option.isSynchronous = true
+        manager.requestImage(for: asset, targetSize: CGSize(width: 1000, height: 1000), contentMode: .aspectFit, options: option, resultHandler: {(result, info)->Void in
+            image = result!
+        })
+        
+        let rect = scale16_9ImageRect(image:image)
+        guard let croppedImage = image.cropped(rect: rect) else { return UIImage()}
+        return croppedImage
+    }
+    
+    func scale16_9ImageRect(image: UIImage) -> CGRect  {
+        let height = image.size.height
+        let imageWidth = image.size.width
+
+        let resizedWidth = height * 9 / 16
+        let originXCoordinate = (imageWidth - resizedWidth)/2
+        let rect = CGRect(x: originXCoordinate, y: 0, width: resizedWidth, height: height)
+        
+        return rect
+
+    }
+    private func setupCaptureSession() {
         sessionQueue.async { [self] in
-            
-            // Input Setting
             captureSession.beginConfiguration()
             let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera,
                                                       for: .video, position: .unspecified)
@@ -178,16 +262,26 @@ class RouteFindingCameraViewController: UIViewController {
                 
                 self.cameraView.videoPreviewLayer.connection?.videoOrientation = initialVideoOrientation
             }
-            
             captureSession.commitConfiguration()
         }
     }
     
-    @objc func capturePhoto() {
+    @objc private func capturePhoto() {
         let settings = AVCapturePhotoSettings()
         sessionQueue.async {
             self.photoOutput?.capturePhoto(with: settings, delegate: self)
         }
+    }
+    
+    @objc func showPhotoPicker() {
+        let photoLibrary = PHPhotoLibrary.shared()
+        var config = PHPickerConfiguration(photoLibrary: photoLibrary)
+        config.filter = .images
+        config.preferredAssetRepresentationMode = .current
+        config.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true, completion: nil)
     }
 }
 
@@ -208,114 +302,65 @@ extension RouteFindingCameraViewController: AVCapturePhotoCaptureDelegate {
         } else {
             guard let data = photo.fileDataRepresentation() else { return }
             
-            guard let image = UIImage(data: data) else { return }
-            let orientationFixedImage = image.fixOrientation()
+            let orientationFixedImage = UIImage(data: data)?.fixOrientation() ?? UIImage()
+            let rect = scale16_9ImageRect(image: orientationFixedImage)
             
-            let height = orientationFixedImage.size.height
-            let imageWidth = orientationFixedImage.size.width
-            
-            let resizedWidth = height * 9 / 16
-            let originXCoordinate = (imageWidth - resizedWidth)/2
-            let rect = CGRect(x: originXCoordinate, y: 0, width: resizedWidth, height: height)
-            
-            guard let resizedImage = orientationFixedImage.cropped(rect: rect) else { return }
-            photoData = resizedImage.pngData()
+            photoImage = orientationFixedImage.cropped(rect: rect)
+            photoData = photoImage?.pngData()
         }
     }
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
-        
-        print("Captured!")
         
         if let error = error {
             print("Error capturing photo: \(error)")
             return
         }
         
-        guard let photoData = photoData else {
-            print("No photo data resource")
-            return
-        }
+        let nextVC = ImageViewController()
+        nextVC.setImageView(image: photoImage)
         
-        PHPhotoLibrary.requestAuthorization({ status in
-            if status == .authorized {
-                PHPhotoLibrary.shared().performChanges({
-                    let options = PHAssetResourceCreationOptions()
-                    let creationRequest = PHAssetCreationRequest.forAsset()
-                    creationRequest.addResource(with: .photo, data: photoData as Data, options: options)
-                }, completionHandler: { _, error in
-                    if let error = error {
-                        print("Error occurred while saving photo to photo library: \(error)")
-                    }
-                }
-                )
-            } else {
-                print("no...")
-            }
-        })
+        navigationController?.pushViewController(nextVC, animated: true)
+        //        PHPhotoLibrary.requestAuthorization({ status in
+        //            if status == .authorized {
+        //                PHPhotoLibrary.shared().performChanges({
+        //                    let options = PHAssetResourceCreationOptions()
+        //                    let creationRequest = PHAssetCreationRequest.forAsset()
+        //                    creationRequest.addResource(with: .photo, data: photoData as Data, options: options)
+        //                }, completionHandler: { _, error in
+        //                    if let error = error {
+        //                        print("Error occurred while saving photo to photo library: \(error)")
+        //                    }
+        //                }
+        //                )
+        //            }
+        //        })
     }
     
 }
 
-extension UIImage {
-    // https://stackoverflow.com/questions/158914/cropping-an-uiimage
-    func cropped(rect: CGRect) -> UIImage? {
-        if let image = self.cgImage!.cropping(to: rect) {
-            return UIImage(cgImage: image)
-        } else if let image = (self.ciImage)?.cropped(to: rect) {
-            return UIImage(ciImage: image)
-        }
-        return nil
-    }
-    
-    // https://github.com/Juhwa-Lee1023/SolDoKu/blob/main/Sudoku/Extensions/UIImage%2B.swift
-    func fixOrientation() -> UIImage {
+extension RouteFindingCameraViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         
-        // 이미지의 방향이 올바를 경우 수정하지 않는다.
-        if self.imageOrientation == UIImage.Orientation.up {
-            return self
+        guard let provider = results.first?.itemProvider else {return}
+        
+        let identifiers = results.compactMap(\.assetIdentifier)
+        let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: identifiers, options: nil)
+        currentLocalIdentifier = fetchResult[0].localIdentifier
+
+        provider.loadFileRepresentation(forTypeIdentifier: "public.image") { url, error in
+            guard error == nil else {
+                print(error as Any)
+                return
+            }
         }
         
-        // 이미지를 변환시키기 위한 함수 선언
-        var transform: CGAffineTransform = CGAffineTransform.identity
+        dismiss(animated: true)
         
-        // 이미지의 상태에 맞게 이미지를 돌린다.
-        if ( self.imageOrientation == UIImage.Orientation.down || self.imageOrientation == UIImage.Orientation.downMirrored ) {
-            transform = transform.translatedBy(x: self.size.width, y: self.size.height)
-            transform = transform.rotated(by: CGFloat(Double.pi))
-        } else if ( self.imageOrientation == UIImage.Orientation.left || self.imageOrientation == UIImage.Orientation.leftMirrored ) {
-            transform = transform.translatedBy(x: self.size.width, y: 0)
-            transform = transform.rotated(by: CGFloat(Double.pi / 2.0))
-        } else if ( self.imageOrientation == UIImage.Orientation.right || self.imageOrientation == UIImage.Orientation.rightMirrored ) {
-            transform = transform.translatedBy(x: 0, y: self.size.height)
-            transform = transform.rotated(by: CGFloat(-Double.pi / 2.0))
-        }
+        let nextVC = ImageViewController()
+        nextVC.setImageView(image: getAssetThumbnail(asset:fetchResult[0]))
+        navigationController?.pushViewController(nextVC, animated: true)
         
-        if ( self.imageOrientation == UIImage.Orientation.upMirrored || self.imageOrientation == UIImage.Orientation.downMirrored ) {
-            transform = transform.translatedBy(x: self.size.width, y: 0)
-            transform = transform.scaledBy(x: -1, y: 1)
-        } else if ( self.imageOrientation == UIImage.Orientation.leftMirrored || self.imageOrientation == UIImage.Orientation.rightMirrored ) {
-            transform = transform.translatedBy(x: self.size.height, y: 0)
-            transform = transform.scaledBy(x: -1, y: 1)
-        }
-        
-        // 이미지 변환용 값 선언
-        let cgValue: CGContext = CGContext(data: nil, width: Int(self.size.width), height: Int(self.size.height),
-                                           bitsPerComponent: self.cgImage!.bitsPerComponent, bytesPerRow: 0,
-                                           space: self.cgImage!.colorSpace!,
-                                           bitmapInfo: self.cgImage!.bitmapInfo.rawValue)!
-        
-        cgValue.concatenate(transform)
-        
-        if ( self.imageOrientation == UIImage.Orientation.left ||
-             self.imageOrientation == UIImage.Orientation.leftMirrored ||
-             self.imageOrientation == UIImage.Orientation.right ||
-             self.imageOrientation == UIImage.Orientation.rightMirrored ) {
-            cgValue.draw(self.cgImage!, in: CGRect(x: 0, y: 0, width: self.size.height, height: self.size.width))
-        } else {
-            cgValue.draw(self.cgImage!, in: CGRect(x: 0, y: 0, width: self.size.width, height: self.size.height))
-        }
-        
-        return UIImage(cgImage: cgValue.makeImage()!)
     }
 }
+
